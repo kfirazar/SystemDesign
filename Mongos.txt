@@ -1,0 +1,72 @@
+https://chatgpt.com/canvas/shared/67ab7cceced081918e2b045e5f37938e
+### MongoDB Architecture Diagram
+
+Below is a graphical representation of MongoDB's architecture, illustrating how various components interact within a **Sharded Cluster with Replica Sets**:
+
+```
+Clients  --->  mongos  --->  Config Servers
+                              |
+                              v
+       ------------------------------------------------
+       |                    |                        |
+    Shard 1               Shard 2                  Shard 3
+    (Replica Set)         (Replica Set)            (Replica Set)
+       |                    |                        |
+       v                    v                        v
+  Primary -> oplog -----> Secondaries  
+  Primary -> oplog -----> Secondaries  
+  Primary -> oplog -----> Secondaries  
+```
+
+### **Component Breakdown**
+
+#### **1. Clients**
+
+- These are applications or users making queries to the database.
+- They send requests for read and write operations.
+
+#### **2. mongos (Query Router)**
+
+- Routes queries from clients to the correct **Shard(s)**.
+- Ensures queries reach the appropriate data location based on **shard key**.
+- Does **not store data**, only manages routing.
+
+#### **3. Config Servers**
+
+- Stores metadata and sharding configuration.
+- Keeps track of which **Shard** holds which part of the data.
+
+#### **4. Shards (Data Storage)**
+
+- Each Shard is a **Replica Set**, providing **high availability** and **failover**.
+- Data is distributed across multiple shards.
+
+#### **5. Replica Sets**
+
+- Each Shard consists of multiple **replica nodes**.
+- Includes:
+  - **Primary Node:** Handles all **write** operations.
+  - **Secondary Nodes:** Sync with Primary using **oplog**.
+  - **Arbiter (Optional):** Helps in Primary election but does not store data.
+
+#### **6. oplog (Operation Log)**
+
+- Tracks all write operations in the **Primary Node**.
+- **Secondaries read from oplog** to maintain consistency.
+- Enables **failover**—if the Primary fails, a Secondary with the most recent **oplog entries** becomes the new **Primary**.
+
+### **How It Works**
+
+1. **Clients** send queries to **mongos**.
+2. **mongos** checks the **Config Servers** to determine **which Shard** holds the relevant data.
+3. Queries are routed to the appropriate **Primary Node**.
+4. The **Primary** processes the write request and logs it in **oplog**.
+5. **Secondary Nodes** replicate the changes from **oplog**, ensuring consistency.
+6. If the **Primary fails**, a **Secondary** takes over using the latest **oplog entries**.
+
+### **Key Benefits of This Architecture**
+
+✔ **Scalability:** Sharding enables horizontal scaling. ✔ **High Availability:** Replica Sets provide redundancy. ✔ **Automatic Failover:** Secondaries take over if a Primary fails. ✔ **Load Balancing:** mongos ensures distributed queries.
+
+This architecture ensures that MongoDB can efficiently handle large-scale distributed databases with **fault tolerance and performance optimization**.
+
